@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  Orders Order[]
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  Client      Client?       @relation(fields: [clientId], references: [id])
+  clientId    Int?
+  OrderEntity OrderEntity[]
+}
+
+model Variant {
+  id Int @id @default(autoincrement())
+
+  uniqueName String  @unique
+  printName  String
+  name       String?
+
+  dimensions Json? @default("{ \"l\": 0, \"b\": 0, \"t\": 0, \"lg\": 0 }")
+
+  Bundles     Bundle[]
+  OrderEntity OrderEntity[]
+}
+
+model OrderEntity {
+  id String @id @default(cuid())
+
+  weight Decimal?
+
+  Order     Order    @relation(fields: [orderId], references: [id])
+  Variant   Variant  @relation(fields: [variantId], references: [id])
+  Bundles   Bundle[]
+  orderId   Int
+  variantId Int
+}
+
+model Bundle {
+  id     String @id @default(cuid())
+  cast   Int    @unique
+  serial Int    @default(autoincrement())
+
+  weight   Decimal
+  quantity Int
+  length   Decimal
+
+  status BundleStatus @default(STOCK)
+
+  createdAt  DateTime @default(now())
+  modifiedAt DateTime @updatedAt
+
+  Variant       Variant      @relation(fields: [variantId], references: [id])
+  variantId     Int
+  OrderEntity   OrderEntity? @relation(fields: [orderEntityId], references: [id])
+  orderEntityId String?
+}
+
+enum BundleStatus {
+  STOCK
+  SOLD
+}
