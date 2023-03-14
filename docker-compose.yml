@@ -6,7 +6,7 @@ networks:
 
 services:
   db:
-    image: postgres:bullseye
+    image: postgres:alpine
     restart: always
     env_file:
       - .env

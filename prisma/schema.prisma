@@ -7,6 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id             String          @id @default(uuid())
+  username       String          @unique
+  passwordHash   String
+  role           Role            @default(WORKER)
+  userAuthTokens UserAuthToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Orders Order[]
+}
+
+model UserAuthToken {
+  token           String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  activationState Boolean? @default(true)
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+}
+
+enum Role {
+  DEVELOPER
+  ADMIN
+  MANAGER
+  WORKER
+}
+
 model Client {
   id   Int    @id @default(autoincrement())
   name String
@@ -20,6 +50,8 @@ model Order {
   Client      Client?       @relation(fields: [clientId], references: [id])
   clientId    Int?
   OrderEntity OrderEntity[]
+  User        User?         @relation(fields: [userId], references: [id])
+  userId      String?
 }
 
 model Variant {
@@ -33,6 +65,18 @@ model Variant {
 
   Bundles     Bundle[]
   OrderEntity OrderEntity[]
+
+  currentDie Int   @default(0)
+  Dies       Die[]
+}
+
+model Die {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  currentVariant Int       @default(0)
+  Variants       Variant[]
 }
 
 model OrderEntity {
@@ -45,6 +89,8 @@ model OrderEntity {
   Bundles   Bundle[]
   orderId   Int
   variantId Int
+
+  dieVariantSnap String?
 }
 
 model Bundle {
